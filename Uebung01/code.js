@@ -1,58 +1,80 @@
-// Das Beispielexperiment erzeugt als Fragen nur die Zahlen 0-9.
-// Ein Experimentteilnehmer kann die Zahlen 1-3 drücken
-//
-// Die Experimentdefinition erfolgt über Aufruf der Funktion
-//  - document.experiment_definition(...)
-// Falls eine Zufallszahl benötigt wird, erhält man sie durch den Methodenaufruf
-//  - document.new_random_integer(...Obergrenze...);
-//
-// WICHTIG: Man sollte new_random_integer nur innerhalb  der Lambda-Funktion ausführen, also NICHT
-// an einer anderen Stelle, damit man ein reproduzierbares Experiment erhält!
+let SEED = "666";
+Nof1.SET_SEED(SEED);
 
-function random_int() {
-    return document.new_random_integer(10);
-}
+let experiment_configuration_function = (writer) => { return {
 
-function random_bool() {
-    return document.new_random_integer(2) > 0;
-}
+    experiment_name: "TestExperiment",
+    seed: SEED,
 
-// Das hier ist die eigentliche Experimentdefinition
-document.experiment_definition(
-    {
-        experiment_name:"Stefan First Trial",
-        seed:"42",
-        introduction_pages:["Interessiert mich nicht.\n\nPress [Enter] to continue."],
-        pre_run_instruction:"Gleich gehts los.\n\nWhen you press [Enter] the tasks directly start.",
-        finish_pages:["Thanks for nothing. When you press [Enter], the experiment's data will be downloaded."],
-        layout:[
-            {variable:"AVariable",treatments:["A", "B"]}
+    introduction_pages: writer.stage_string_pages_commands([
+        writer.convert_string_to_html_string(
+            "Please, just do this experiment only, when you have enough time, are concentrated enough, and motivated enough.\n\nPlease, open the browser in fullscreen mode (probably by pressing [F11])."),
+        writer.convert_string_to_html_string(
+            "In this experiment, you will be asked to manually compute the result of an mathematical term.\n\nDon't worry, the terms are not too complex.")
+    ]),
+
+    pre_run_training_instructions: writer.string_page_command(
+        writer.convert_string_to_html_string(
+            "You entered the training phase."
+        )),
+
+    pre_run_experiment_instructions: writer.string_page_command(
+        writer.convert_string_to_html_string(
+            "You entered the experiment phase.\n\n"
+        )),
+
+    finish_pages: [
+        writer.string_page_command(
+            writer.convert_string_to_html_string(
+                "Almost done. Next, the experiment data will be downloaded. Please, send the " +
+                "downloaded file to the experimenter.\n\nAfter sending your email, you can close this window.\n\nMany thanks for participating in the experiment."
+            )
+        )
+    ],
+
+    layout: [
+        { variable: "Dummy",  treatments: ["X"]},
+    ],
+
+    training_configuration: {
+        fixed_treatments:               [
+            ["Dummy", "X"]
         ],
-        repetitions:4,                    // Anzahl der Wiederholungen pro Treatmentcombination
-        accepted_responses:["0", "1","2","3", "4", "5", "6", "7", "8", "9"], // Tasten, die vom Experiment als Eingabe akzeptiert werden
-        task_configuration:(t)=>{
-            // Das hier ist der Code, der jeder Task im Experiment den Code zuweist.
-            // Im Feld code steht der Quellcode, der angezeigt wird,
-            // in "expected_answer" das, was die Aufgabe als Lösung erachtet
-            // In das Feld "given_answer" trägt das Experiment ein, welche Taste gedrückt wurde
-            //
-            // Ein Task-Objekt hat ein Feld treatment_combination, welches ein Array von Treatment-Objekten ist.
-            // Ein Treatment-Objekt hat zwei Felder:
-            //     variable - Ein Variable-Objekt, welches das Feld name hat (der Name der Variablen);
-            //     value - Ein String, in dem der Wert des Treatments steht.
+        can_be_cancelled: false,
+        can_be_repeated: false
+    },
 
-            if (t.treatment_combination[0].value=="A")
-                t.code = "Dummy"
-            else
-                t.code = "Another Dummy";
+    repetitions: 10,
 
-            t.expected_answer = "" + random_int();
+    measurement: Nof1.Reaction_time(Nof1.keys(["1", "2", "3", "9"])),
 
+    task_configuration:    (t) => {
 
-            // im Feld after_task_string steht eine Lambda-Funktion, die ausgeführt wird
-            // wenn eine Task beantwortet wurde. Das Ergebnis der Funktion muss ein String
-            // sein.
-            t.after_task_string = ()=>"Some nice text between the tasks";
+        t.do_print_task = () => {
+            writer.clear_stage();
+            writer.print_html_on_stage("<div class='sourcecode'>Hi, this is some source code, enter abc </div>");
+        };
+
+        t.expected_answer = "abc";
+
+        t.accepts_answer_function = (given_answer) => {
+            return true;
+        };
+
+        t.do_print_error_message = (given_answer) => {
+            writer.clear_stage();
+            writer.clear_error();
+            writer.print_html_on_error("<h1>Invalid answer: " + given_answer + "");
+        };
+
+        t.do_print_after_task_information = () => {
+            writer.clear_error();
+            writer.print_string_on_stage(writer.convert_string_to_html_string(
+                "Correct.\n\n" +
+                "In case, you feel not concentrated enough, make a short break.\n\n" +
+                "Press [Enter] to go on. "));
         }
     }
-);
+}};
+
+Nof1.BROWSER_EXPERIMENT(experiment_configuration_function);
