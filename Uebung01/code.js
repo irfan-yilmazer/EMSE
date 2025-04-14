@@ -50,6 +50,8 @@ let experiment_configuration_function = (writer) => { return {
 
     task_configuration:    (t) => {
 
+        let random_int = Nof1.new_random_integer(10);
+
         t.do_print_task = () => {
             writer.clear_stage();
             writer.print_html_on_stage("<div class='sourcecode'>Hi, this is some source code, enter abc </div>");
