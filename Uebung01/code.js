@@ -1,82 +1,141 @@
-let SEED = "666";
+// code.js
+
+let SEED = "1";
 Nof1.SET_SEED(SEED);
 
-let experiment_configuration_function = (writer) => { return {
 
+// 1) Deine Aufgaben, Testdaten und Lösungssfunktionen jetzt außerhalb von `task_configuration`
+const aufgabenOhneKuerzel = [
+    `const numbersList1 = [1, 2];
+function sum(a) {
+  return a[0] + a[1];
+}
+console.log(sum(numbersList1)); // expected 3`,
+    `const numbersList2 = [4, 5];
+function sum(a) {
+  return a[0] + a[1];
+}
+console.log(sum(numbersList2)); // expected 9`,
+    `const numbersList3 = [2, 2];
+function product(a) {
+  return a[0] * a[1];
+}
+console.log(product(numbersList3)); // expected 4`,
+    `const numbersList4 = [1, 3];
+function product(a) {
+  return a[0] * a[1];
+}
+console.log(product(numbersList4)); // expected 3`,
+    `const letters = ["H", "A", "I"];
+function pickFirst(a) {
+  return a[0];
+}
+console.log(pickFirst(letters)); // expected H`
+];
+
+const testArrays = [
+    [1, 2],
+    [4, 5],
+    [2, 2],
+    [1, 3],
+    ["H", "A", "I"]
+];
+
+const solutionFns = [
+    arr => arr[0] + arr[1],
+    arr => arr[0] + arr[1],
+    arr => arr[0] * arr[1],
+    arr => arr[0] * arr[1],
+    arr => arr[0]
+];
+
+let experiment_configuration_function = (writer) => ({
     experiment_name: "TestExperiment",
     seed: SEED,
 
     introduction_pages: writer.stage_string_pages_commands([
-        writer.convert_string_to_html_string(
-            "Please, just do this experiment only, when you have enough time, are concentrated enough, and motivated enough.\n\nPlease, open the browser in fullscreen mode (probably by pressing [F11])."),
-        writer.convert_string_to_html_string(
-            "In this experiment, you will be asked to manually compute the result of an mathematical term.\n\nDon't worry, the terms are not too complex.")
+        writer.string_page_command(
+            writer.convert_string_to_html_string(
+                "Bitte nur starten, wenn du genug Zeit und Konzentration hast."
+            )
+        ),
+        writer.string_page_command(
+            writer.convert_string_to_html_string(
+                "Du rechnest hier per Hand einfache Mathematik- oder Buchstabenaufgaben."
+            )
+        )
     ]),
 
     pre_run_training_instructions: writer.string_page_command(
-        writer.convert_string_to_html_string(
-            "You entered the training phase."
-        )),
+        writer.convert_string_to_html_string("Training startet jetzt.")
+    ),
 
     pre_run_experiment_instructions: writer.string_page_command(
-        writer.convert_string_to_html_string(
-            "You entered the experiment phase.\n\n"
-        )),
+        writer.convert_string_to_html_string("Experiment startet jetzt.")
+    ),
 
     finish_pages: [
         writer.string_page_command(
-            writer.convert_string_to_html_string(
-                "Almost done. Next, the experiment data will be downloaded. Please, send the " +
-                "downloaded file to the experimenter.\n\nAfter sending your email, you can close this window.\n\nMany thanks for participating in the experiment."
-            )
+            writer.convert_string_to_html_string("Fertig! Bitte Datei speichern.")
         )
     ],
 
-    layout: [
-        { variable: "Dummy",  treatments: ["X"]},
-    ],
-
+    layout: [{ variable: "Dummy", treatments: ["X"] }],
     training_configuration: {
-        fixed_treatments:               [
-            ["Dummy", "X"]
-        ],
+        fixed_treatments: [["Dummy", "X"]],
         can_be_cancelled: false,
         can_be_repeated: false
     },
-
     repetitions: 10,
 
-    measurement: Nof1.Reaction_time(Nof1.keys(["1", "2", "3", "9"])),
+    // 2) Nof1 misst automatisch die Reaktionszeit auf "Enter"
+    measurement: Nof1.Reaction_time(Nof1.keys(["0","1","2","3","4","5","6","7","8","9"])),
 
-    task_configuration:    (t) => {
+    task_configuration: (t) => {
+        // Debug-Ausgabe
+        console.log("task obj methods:", Object.keys(t));
 
-        let random_int = Nof1.new_random_integer(10);
+        // Zufälligen Task auswählen
+        const idx = Nof1.new_random_integer(0, aufgabenOhneKuerzel.length - 1);
+        const snippet = aufgabenOhneKuerzel[idx];
+        const testArr = testArrays[idx];
+        const expected = solutionFns[idx](testArr);
 
+        // Nof1 erwartet diese Felder
+        t.expected_answer = String(expected);
+        t.accepts_answer_function = (ans) =>
+            ans === String(expected);
+
+        // Aufgabe rendern
         t.do_print_task = () => {
+            const esc = snippet
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
             writer.clear_stage();
-            writer.print_html_on_stage("<div class='sourcecode'>Hi, this is some source code, enter abc </div>");
+            writer.print_html_on_stage(`
+        <pre class="sourcecode">${esc}</pre>
+        <p>Aufgabe: Berechne <code>${Array.isArray(testArr) ? "[" + testArr.join(", ") + "]" : testArr}</code>.</p>
+        <input class="stage input" maxlength="1" placeholder="Dein Ergebnis" autofocus />
+        <p>Enter drücken, wenn fertig.</p>
+      `);
         };
 
-        t.expected_answer = "abc";
-
-        t.accepts_answer_function = (given_answer) => {
-            return true;
-        };
-
-        t.do_print_error_message = (given_answer) => {
-            writer.clear_stage();
+        t.do_print_error_message = (ans) => {
             writer.clear_error();
-            writer.print_html_on_error("<h1>Invalid answer: " + given_answer + "");
+            writer.print_html_on_error(`<h1>Falsch: „${ans}“</h1>`);
         };
 
         t.do_print_after_task_information = () => {
             writer.clear_error();
-            writer.print_string_on_stage(writer.convert_string_to_html_string(
-                "Correct.\n\n" +
-                "In case, you feel not concentrated enough, make a short break.\n\n" +
-                "Press [Enter] to go on. "));
-        }
+            writer.print_html_on_stage(
+                writer.convert_string_to_html_string(
+                    "Richtig! Drücke Enter für den nächsten Durchgang."
+                )
+            );
+        };
     }
-}};
+});
 
 Nof1.BROWSER_EXPERIMENT(experiment_configuration_function);
