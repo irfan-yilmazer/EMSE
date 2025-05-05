@@ -33,6 +33,8 @@ function pickFirst(a) {
 console.log(pickFirst(letters)); // expected H`
 ];
 
+let number = -1;
+
 const testArrays = [
     [1, 2],
     [4, 5],
@@ -96,10 +98,15 @@ let experiment_configuration_function = (writer) => ({
         console.log("task obj methods:", Object.keys(t));
 
         // Zufälligen Task auswählen
-        const idx = Nof1.new_random_integer(0, aufgabenOhneKuerzel.length - 1);
-        const snippet = aufgabenOhneKuerzel[idx];
-        const testArr = testArrays[idx];
-        const expected = solutionFns[idx](testArr);
+        number = (number + 1) % aufgabenOhneKuerzel.length;
+        const snippet = aufgabenOhneKuerzel[number];
+        const testArr = testArrays[number];
+        const expected = solutionFns[number](testArr);
+
+
+        console.log(snippet.toString());
+        console.log(testArr);
+        console.log(expected.toString());
 
         // Nof1 erwartet diese Felder
         t.expected_answer = String(expected);
