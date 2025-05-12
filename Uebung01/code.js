@@ -3,53 +3,144 @@
 let SEED = "1";
 Nof1.SET_SEED(SEED);
 
-
-// 1) Deine Aufgaben, Testdaten und Lösungssfunktionen jetzt außerhalb von `task_configuration`
 const aufgabenOhneKuerzel = [
-    `const numbersList1 = [1, 2];
-function sum(a) {
-  return a[0] + a[1];
+    // 1) Summe von 3 Zahlen
+    `
+const data = [1, 2, 3];
+function something(a) {
+  return a[0] + a[1] + a[2];
 }
-console.log(sum(numbersList1)); // expected 3`,
-    `const numbersList2 = [4, 5];
-function sum(a) {
-  return a[0] + a[1];
+console.log(something(data));`,
+
+    // 2) Differenz zweite von erste
+    `const vals = [5, 3];
+function something(a) { return a[0] - a[1]; }
+console.log(something(vals));`,
+
+    // 3) String-Konkatenation
+    `const words = ["Hello", "World"];
+function something(xs) { return xs[0] + " " + xs[1]; }
+console.log(something(words));`,
+
+    // 4) Logisches OR
+    `const flags = [false, true, false];
+function something(f) { return f[0] || f[1] || f[2]; }
+console.log(something(flags));`,
+
+    // 5) Schleifen-Summe
+    `const nums = [1, 2, 3, 4];
+function something(arr) {
+  let s = 0;
+  for(let i=0; i<arr.length; i++){
+    s += arr[i];
+  }
+  return s;
 }
-console.log(sum(numbersList2)); // expected 9`,
-    `const numbersList3 = [2, 2];
-function product(a) {
-  return a[0] * a[1];
+console.log(something(nums));`,
+
+        `// Setup-Code, bitte ignorieren
+const alpha = 100;
+const data = [2, 4, 6, 8];
+/*
+  TODO: hier könnte noch mehr stehen
+*/
+// Jetzt die Mess-Funktion:
+function summeVon3(a) {
+  const x = a[0];
+  const y = a[1];
+  const z = a[2];
+  // Rückgabe der Summe
+  return x + y + z;
 }
-console.log(product(numbersList3)); // expected 4`,
-    `const numbersList4 = [1, 3];
-function product(a) {
-  return a[0] * a[1];
+// Ausgabe
+console.log(computeSum3(data.slice(0,3)));`,
+
+    // 7) Subtraktion mit Ablenkung
+    `const foo = "abc";
+function noop(x){ return x; }
+const values = [10, 7];
+// Hier kommt deine Aufgabe:
+function calculateDifferenceOfIndex(array) {
+  // Erstmal dummy
+  const t = noop(arr[0]);
+  return t - arr[1];
 }
-console.log(product(numbersList4)); // expected 3`,
-    `const letters = ["H", "A", "I"];
-function pickFirst(a) {
-  return a[0];
+console.log(calculateDiff(values));`,
+
+    // 8) String join mit Kommentarblock
+    `// mehrere Hilfsfunktionen
+function upper(s){ return s.toUpperCase(); }
+function lower(s){ return s.toLowerCase(); }
+
+const letters = ["JS", "Rocks"];
+function combineIndexes(arr) {
+  return upper(arr[0]) + " & " + lower(arr[1]);
 }
-console.log(pickFirst(letters)); // expected H`
+console.log(combine(letters));`,
+
+    // 9) Logik mit Distraktoren und weiteren Bedingungen
+    `const arrFlags = [true, false, false];
+// irrelevant:
+let counter = 0;
+counter++;
+// Mess-Funktion:
+function checkIfTrueIndex(a){
+  if(a[2] === true) {
+    return a[2];
+  }
+  return a[0] || a[1];
+}
+console.log(checkOr(arrFlags));`,
+
+    // 10) Loop-Summe mit zusätzlichen Variablen
+    `// Vorbereitungscode
+const arrNums = [5, 5, 5];
+let debug = false;
+
+// wirklich wichtige Funktion:
+function sumWithLoop(a) {
+  let total = 0;
+  for (let i = 0; i < a.length; i++) {
+    if(debug) console.log("idx", i);
+    total += a[i];
+  }
+  // Rückgabe
+  return total;
+}
+
+console.log(sumWithLoop(arrNums));`
 ];
 
 let number = -1;
 
 const testArrays = [
-    [1, 2],
-    [4, 5],
-    [2, 2],
-    [1, 3],
-    ["H", "A", "I"]
+    [1,2,3],    // für SHORT 1
+    [5,3],      // für SHORT 2
+    ["Hello","World"], // SHORT 3
+    [false,true,false],// SHORT 4
+    [1,2,3,4], // SHORT 5
+    [2,4,6],   // LONG 6 (slice 0,1,2)
+    [10,7],    // LONG 7
+    ["JS","Rocks"],// LONG 8
+    [true,false,false],// LONG 9
+    [5,5,5]    // LONG 10
 ];
 
 const solutionFns = [
-    arr => arr[0] + arr[1],
-    arr => arr[0] + arr[1],
-    arr => arr[0] * arr[1],
-    arr => arr[0] * arr[1],
-    arr => arr[0]
+    arr => arr[0] + arr[1] + arr[2],
+    arr => arr[0] - arr[1],
+    arr => arr[0] + " " + arr[1],
+    arr => arr[0] || arr[1] || arr[2],
+    arr => { let s=0; for(let i=0;i<arr.length;i++) s+=arr[i]; return s; },
+
+    // long
+    arr => arr[0] + arr[1] + arr[2],
+    arr => arr[0] - arr[1],
+    arr => arr[0].toUpperCase() + " & " + arr[1].toLowerCase(),
+    arr => arr[0] || arr[1] || arr[2],
+    arr => { let s=0; for(let i=0;i<arr.length;i++) s+=arr[i]; return s; }
 ];
+
 
 let experiment_configuration_function = (writer) => ({
     experiment_name: "TestExperiment",
@@ -91,11 +182,14 @@ let experiment_configuration_function = (writer) => ({
     repetitions: 10,
 
     // 2) Nof1 misst automatisch die Reaktionszeit auf "Enter"
-    measurement: Nof1.Reaction_time(Nof1.keys(["0","1","2","3","4","5","6","7","8","9"])),
+    measurement: Nof1.Reaction_time(
+        Nof1.keys([
+            "0","1","2","3","4","5","6","7","8","9",
+            "H","Z","h","z"
+        ])
+    ),
 
     task_configuration: (t) => {
-        // Debug-Ausgabe
-        console.log("task obj methods:", Object.keys(t));
 
         // Zufälligen Task auswählen
         number = (number + 1) % aufgabenOhneKuerzel.length;
